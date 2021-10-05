@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+  <group android:id="@+id/group1">
+    <item android:id="@+id/menu_dashboard"
+
+        android:title="Dashboard"></item>>
+  </group>
+
+  <group android:id="@+id/group2">
+  <item android:id="@+id/menu_payment"
+      android:title="Make Payment"></item>
+  </group>
+
+  <group android:id="@+id/group3">
+    <item android:id="@+id/menu_history"
+        android:title="Payment History">
+
+    </item>
+  </group>
+
+ <!-- <group android:id="@+id/group4">
+    <item android:id="@+id/menu_spinner" android:title="Report"></item>
+  </group>-->
+
+
+      <item android:title="Report"
+          android:iconTint="@color/white">
+
+        <menu>
+          <group android:id="@+id/group4">
+
+            <item
+                android:id="@+id/report_menu_spinner"
+
+                android:title="Weather Reports"/>
+
+            <item
+                android:id="@+id/report_menu_consumption"
+                android:title="Consumptions"/>
+          </group>
+
+
+        </menu>
+      </item>
+
+  <item
+      android:title="">
+
+  </item>
+  <item
+      android:title="">
+
+  </item>
+
+    <item
+        android:id="@+id/logOut"
+        android:title="Log out" />
+
+
+
+</menu>
