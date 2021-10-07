@@ -19,7 +19,8 @@ public interface Service {
     @GET("list_weekdays.php")
     Call<MainWeekModels> getModels(@Query("device_id") Integer device_id);
 
-    @POST("weekdays_add.php")
+    @Headers({"Accept: application/json"})
+    @GET("weekdays_add.php")
     Call<String> getAddWeeks(@Query("device_id") Integer device_id,
                                       @Query("weekday_id") Integer weekday_id,
                                       @Query("start_time") String start_time,

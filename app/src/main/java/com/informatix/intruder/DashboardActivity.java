@@ -212,7 +212,7 @@ public class DashboardActivity extends AppCompatActivity {
                 addButton.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        createNewContactDialog();
+                        createNewContactDialog(v);
                     }
                 });
 
@@ -285,13 +285,13 @@ public class DashboardActivity extends AppCompatActivity {
         }
     }
 
-    public void createNewContactDialog(){
+    public void createNewContactDialog(View v){
         dialogBuilder = new AlertDialog.Builder(this);
-        final View openAddWeekList = getLayoutInflater().inflate(R.layout.popup_week_add,null);
-        pop_upstartTime = openAddWeekList.findViewById(R.id.pop_upstartTime);
-        pop_upendTime = openAddWeekList.findViewById(R.id.pop_upendTime);
-        pop_upaddButton = openAddWeekList.findViewById(R.id.pop_upaddButton);
-        dialogBuilder.setView(openAddWeekList);
+        v = getLayoutInflater().inflate(R.layout.popup_week_add,null);
+        pop_upstartTime = v.findViewById(R.id.pop_upstartTime);
+        pop_upendTime = v.findViewById(R.id.pop_upendTime);
+        pop_upaddButton = v.findViewById(R.id.pop_upaddButton);
+        dialogBuilder.setView(v);
         dialog = dialogBuilder.create();
         dialog.show();
 
@@ -306,11 +306,11 @@ public class DashboardActivity extends AppCompatActivity {
                             public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
                                 startTimeHour = hourOfDay;
                                 startTimeMinute = minute;
-
                                 Calendar calendar = Calendar.getInstance();
                                 calendar.set(0,0,0,startTimeHour,startTimeMinute);
-                                popUpStartTime = String.valueOf(DateFormat.format("hh:mm aa",calendar));
+                                popUpStartTime = String.valueOf(DateFormat.format("hh:mm ",calendar));
                                 pop_upstartTime.setText(popUpStartTime);
+
                             }
                         },12,0,false
                 );
@@ -336,7 +336,7 @@ public class DashboardActivity extends AppCompatActivity {
                                 Calendar calendar = Calendar.getInstance();
                                 calendar.set(0,0,0,endTimeHour,endTimeMinute);
 
-                                popUpEndTime = String.valueOf(DateFormat.format("hh:mm aa",calendar));
+                                popUpEndTime = String.valueOf(DateFormat.format("hh:mm",calendar));
                                 pop_upendTime.setText(popUpEndTime);
 
                             }
@@ -359,7 +359,6 @@ public class DashboardActivity extends AppCompatActivity {
                         Retrofit retrofit = new Retrofit.Builder()
                                 .baseUrl("http://us.infrmtx.com/iot/")
                                 .addConverterFactory(GsonConverterFactory.create())
-
                                 .build();
 
                         Service api = retrofit.create(Service.class);
@@ -381,7 +380,7 @@ public class DashboardActivity extends AppCompatActivity {
                             @Override
                             public void onFailure(Call<String> call, Throwable t) {
                                 Toast.makeText(DashboardActivity.this, "Failed", Toast.LENGTH_SHORT).show();
-                               /* recreate();*/
+                                recreate();
                             }
                         });
             }
