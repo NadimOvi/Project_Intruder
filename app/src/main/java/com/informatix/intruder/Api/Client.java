@@ -1,4 +1,4 @@
-package com.informatix.intruder;
+package com.informatix.intruder.Api;
 
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;

@@ -2,11 +2,13 @@ package com.informatix.intruder;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
+import androidx.core.view.GravityCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
 
+import android.app.ProgressDialog;
 import android.app.TimePickerDialog;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
@@ -18,23 +20,21 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.Toast;
 
+import com.informatix.intruder.Api.Service;
 import com.informatix.intruder.Model.MainWeekModels;
 import com.informatix.intruder.Model.WeekModels;
 
 import org.json.JSONObject;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
-import java.util.Date;
-import java.util.List;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -44,17 +44,20 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class DashboardActivity extends AppCompatActivity {
 
+    ImageView ClickMenu,ClickClose;
+    DrawerLayout drawerLayout;
+    private ProgressDialog progressDialog;
     SharedPreferences sharedPreferences;
     SharedPreferences.Editor editor;
     ListView list;
     Button addButton,deleteButton,editButton,pop_upaddButton,cancel_popup;
-    TextView startTime,endTime;
+    TextView startTime,endTime, ClickWeek, ClickDay, ClickSetting,profileNameID,totalBalance;
     TextView pop_upstartTime,pop_upendTime;
     private AlertDialog.Builder dialogBuilder;
     private AlertDialog dialog;
     int startTimeHour,startTimeMinute, endTimeHour,endTimeMinute;
     String popUpStartTime,popUpEndTime;
-
+    String mainDeviceID;
     int device_id, weekDayId, dayId;
 
 
@@ -68,27 +71,88 @@ public class DashboardActivity extends AppCompatActivity {
         String userID= sharedPreferences.getString("userID",null);
         String password= sharedPreferences.getString("password",null);
         String name= sharedPreferences.getString("name",null);
-        String device_id= sharedPreferences.getString("device_id",null);
+        mainDeviceID= sharedPreferences.getString("device_id","");
         String valid_till= sharedPreferences.getString("valid_till",null);
-        Toast.makeText(this,userID+"\n"+password+"\n"+name+"\n"+device_id+"\n"+valid_till, Toast.LENGTH_SHORT).show();
 
+
+        progressDialog = new ProgressDialog(DashboardActivity.this);
+        progressDialog.setMessage("Please Wait...");
+        progressDialog.setCancelable(false);
+
+
+        ClickMenu = findViewById(R.id.ClickMenu);
+        ClickClose = findViewById(R.id.ClickClose);
+        ClickWeek = findViewById(R.id.ClickWeek);
+        ClickDay = findViewById(R.id.ClickDay);
+        ClickSetting = findViewById(R.id.ClickSetting);
+        drawerLayout = findViewById(R.id.drawer);
+        profileNameID = findViewById(R.id.profileNameID);
+        totalBalance = findViewById(R.id.totalBalance);
+        profileNameID.setText(name);
+        totalBalance.setText(valid_till);
         listShow();
+        ClickMenu.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                openDrawer(drawerLayout);
+            }
+        });
 
+        ClickClose.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                closeDrawer(drawerLayout);
+            }
+        });
+        ClickWeek.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(DashboardActivity.this,DashboardActivity.class);
+                startActivity(intent);
+            }
+        });
+        ClickDay.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(DashboardActivity.this,DayListActivity.class);
+                startActivity(intent);
+            }
+        });
+        ClickSetting.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(DashboardActivity.this,SettingsActivity.class);
+                startActivity(intent);
+            }
+        });
 
     }
+    private void openDrawer(DrawerLayout drawerLayout) {
+        drawerLayout.openDrawer(GravityCompat.START);
+        /*view.setClickable(false);*/
+    }
+
+    private void closeDrawer(DrawerLayout drawerLayout) {
+        if (drawerLayout.isDrawerOpen(GravityCompat.START)){
+            drawerLayout.closeDrawer(GravityCompat.START);
+            ClickClose.setClickable(true);
+        }
+    }
+
 
     private void listShow() {
+        progressDialog.show();
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl("http://us.infrmtx.com/iot/")
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
 
         Service api = retrofit.create(Service.class);
-        Call<MainWeekModels> call= api.getModels(1);
+        Call<MainWeekModels> call= api.getModels(Integer.valueOf(mainDeviceID));
         call.enqueue(new Callback<MainWeekModels>() {
             @Override
             public void onResponse(Call<MainWeekModels> call, Response<MainWeekModels> response) {
-
+                progressDialog.dismiss();
                 ArrayList<WeekModels> itemsModel = response.body().getWeekdays();
 
                 ArrayList<WeekModels> itemsList = new ArrayList<>();
@@ -106,7 +170,7 @@ public class DashboardActivity extends AppCompatActivity {
 
             @Override
             public void onFailure(Call<MainWeekModels> call, Throwable t) {
-
+            progressDialog.dismiss();
             }
         });
     }
@@ -212,7 +276,637 @@ public class DashboardActivity extends AppCompatActivity {
                 addButton.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        createNewContactDialog(v);
+                        if (cell.getWeek_day()==1){
+
+                            dialogBuilder = new AlertDialog.Builder(DashboardActivity.this);
+                            v = getLayoutInflater().inflate(R.layout.popup_week_add,null);
+                            pop_upstartTime = v.findViewById(R.id.pop_upstartTime);
+                            pop_upendTime = v.findViewById(R.id.pop_upendTime);
+                            pop_upaddButton = v.findViewById(R.id.pop_upaddButton);
+                            dialogBuilder.setView(v);
+                            dialog = dialogBuilder.create();
+                            dialog.show();
+
+                            pop_upstartTime.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    TimePickerDialog timePickerDialog = new TimePickerDialog(
+                                            DashboardActivity.this,
+                                            android.R.style.Theme_Holo_Light_Dialog_MinWidth,
+                                            new TimePickerDialog.OnTimeSetListener() {
+                                                @Override
+                                                public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
+                                                    startTimeHour = hourOfDay;
+                                                    startTimeMinute = minute;
+                                                    Calendar calendar = Calendar.getInstance();
+                                                    calendar.set(0,0,0,startTimeHour,startTimeMinute);
+                                                    popUpStartTime = String.valueOf(DateFormat.format("hh:mm ",calendar));
+                                                    pop_upstartTime.setText(popUpStartTime);
+
+                                                }
+                                            },12,0,false
+                                    );
+
+                                    timePickerDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+                                    timePickerDialog.updateTime(startTimeHour,startTimeMinute);
+                                    timePickerDialog.show();
+                                }
+                            });
+
+                            pop_upendTime.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    TimePickerDialog timePickerDialog = new TimePickerDialog(
+                                            DashboardActivity.this,
+                                            android.R.style.Theme_Holo_Light_Dialog_MinWidth,
+                                            new TimePickerDialog.OnTimeSetListener() {
+                                                @Override
+                                                public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
+                                                    endTimeHour = hourOfDay;
+                                                    endTimeMinute = minute;
+
+                                                    Calendar calendar = Calendar.getInstance();
+                                                    calendar.set(0,0,0,endTimeHour,endTimeMinute);
+
+                                                    popUpEndTime = String.valueOf(DateFormat.format("hh:mm",calendar));
+                                                    pop_upendTime.setText(popUpEndTime);
+
+                                                }
+                                            },12,0,false
+                                    );
+
+                                    timePickerDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+                                    timePickerDialog.updateTime(endTimeHour,endTimeMinute);
+                                    timePickerDialog.show();
+                                }
+                            });
+
+
+
+                            pop_upaddButton.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    startTime.setEnabled(true);
+                                    endTime.setEnabled(true);
+                                    progressDialog.show();
+                                    Retrofit retrofit = new Retrofit.Builder()
+                                            .baseUrl("http://us.infrmtx.com/iot/")
+                                            .addConverterFactory(GsonConverterFactory.create())
+                                            .build();
+
+                                    Service api = retrofit.create(Service.class);
+                                    Call<String> call= api.getAddWeeks(device_id,cell.getWeek_day(),popUpStartTime,popUpEndTime);
+                                    call.enqueue(new Callback<String>() {
+                                        @Override
+                                        public void onResponse(Call<String> call, Response<String> response) {
+                                            if (response.isSuccessful()){
+                                                Toast.makeText(DashboardActivity.this, "New Time Added", Toast.LENGTH_SHORT).show();
+
+                                                /*startActivity(getIntent());*/
+                                                /*recreate();*/
+                                                progressDialog.dismiss();
+
+                                            }else{
+                                                Toast.makeText(DashboardActivity.this, "Error", Toast.LENGTH_SHORT).show();
+                                            }
+                                        }
+
+                                        @Override
+                                        public void onFailure(Call<String> call, Throwable t) {
+                                            progressDialog.dismiss();
+                                            Toast.makeText(DashboardActivity.this, "Failed", Toast.LENGTH_SHORT).show();
+                                            recreate();
+                                        }
+                                    });
+                                }
+                            });
+                        }
+                        else if (cell.getWeek_day()==2){
+
+                            dialogBuilder = new AlertDialog.Builder(DashboardActivity.this);
+                            v = getLayoutInflater().inflate(R.layout.popup_week_add,null);
+                            pop_upstartTime = v.findViewById(R.id.pop_upstartTime);
+                            pop_upendTime = v.findViewById(R.id.pop_upendTime);
+                            pop_upaddButton = v.findViewById(R.id.pop_upaddButton);
+                            dialogBuilder.setView(v);
+                            dialog = dialogBuilder.create();
+                            dialog.show();
+
+                            pop_upstartTime.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    TimePickerDialog timePickerDialog = new TimePickerDialog(
+                                            DashboardActivity.this,
+                                            android.R.style.Theme_Holo_Light_Dialog_MinWidth,
+                                            new TimePickerDialog.OnTimeSetListener() {
+                                                @Override
+                                                public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
+                                                    startTimeHour = hourOfDay;
+                                                    startTimeMinute = minute;
+                                                    Calendar calendar = Calendar.getInstance();
+                                                    calendar.set(0,0,0,startTimeHour,startTimeMinute);
+                                                    popUpStartTime = String.valueOf(DateFormat.format("hh:mm ",calendar));
+                                                    pop_upstartTime.setText(popUpStartTime);
+
+                                                }
+                                            },12,0,false
+                                    );
+
+                                    timePickerDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+                                    timePickerDialog.updateTime(startTimeHour,startTimeMinute);
+                                    timePickerDialog.show();
+                                }
+                            });
+
+                            pop_upendTime.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    TimePickerDialog timePickerDialog = new TimePickerDialog(
+                                            DashboardActivity.this,
+                                            android.R.style.Theme_Holo_Light_Dialog_MinWidth,
+                                            new TimePickerDialog.OnTimeSetListener() {
+                                                @Override
+                                                public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
+                                                    endTimeHour = hourOfDay;
+                                                    endTimeMinute = minute;
+
+                                                    Calendar calendar = Calendar.getInstance();
+                                                    calendar.set(0,0,0,endTimeHour,endTimeMinute);
+
+                                                    popUpEndTime = String.valueOf(DateFormat.format("hh:mm",calendar));
+                                                    pop_upendTime.setText(popUpEndTime);
+
+                                                }
+                                            },12,0,false
+                                    );
+
+                                    timePickerDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+                                    timePickerDialog.updateTime(endTimeHour,endTimeMinute);
+                                    timePickerDialog.show();
+                                }
+                            });
+
+
+
+                            pop_upaddButton.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+
+                                    progressDialog.show();
+                                    startTime.setEnabled(true);
+                                    endTime.setEnabled(true);
+                                    Retrofit retrofit = new Retrofit.Builder()
+                                            .baseUrl("http://us.infrmtx.com/iot/")
+                                            .addConverterFactory(GsonConverterFactory.create())
+                                            .build();
+
+                                    Service api = retrofit.create(Service.class);
+                                    Call<String> call= api.getAddWeeks(device_id,cell.getWeek_day(),popUpStartTime,popUpEndTime);
+                                    call.enqueue(new Callback<String>() {
+                                        @Override
+                                        public void onResponse(Call<String> call, Response<String> response) {
+                                            if (response.isSuccessful()){
+                                                Toast.makeText(DashboardActivity.this, "New Time Added", Toast.LENGTH_SHORT).show();
+                                                progressDialog.dismiss();
+                                                /*startActivity(getIntent());*/
+                                                /*recreate();*/
+
+                                            }else{
+                                                Toast.makeText(DashboardActivity.this, "Error", Toast.LENGTH_SHORT).show();
+                                                progressDialog.dismiss();
+                                            }
+                                        }
+
+                                        @Override
+                                        public void onFailure(Call<String> call, Throwable t) {
+                                            progressDialog.dismiss();
+                                            Toast.makeText(DashboardActivity.this, "Failed", Toast.LENGTH_SHORT).show();
+                                            recreate();
+                                        }
+                                    });
+                                }
+                            });
+                        }
+                        else if (cell.getWeek_day()==3){
+
+                            dialogBuilder = new AlertDialog.Builder(DashboardActivity.this);
+                            v = getLayoutInflater().inflate(R.layout.popup_week_add,null);
+                            pop_upstartTime = v.findViewById(R.id.pop_upstartTime);
+                            pop_upendTime = v.findViewById(R.id.pop_upendTime);
+                            pop_upaddButton = v.findViewById(R.id.pop_upaddButton);
+                            dialogBuilder.setView(v);
+                            dialog = dialogBuilder.create();
+                            dialog.show();
+
+                            pop_upstartTime.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    TimePickerDialog timePickerDialog = new TimePickerDialog(
+                                            DashboardActivity.this,
+                                            android.R.style.Theme_Holo_Light_Dialog_MinWidth,
+                                            new TimePickerDialog.OnTimeSetListener() {
+                                                @Override
+                                                public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
+                                                    startTimeHour = hourOfDay;
+                                                    startTimeMinute = minute;
+                                                    Calendar calendar = Calendar.getInstance();
+                                                    calendar.set(0,0,0,startTimeHour,startTimeMinute);
+                                                    popUpStartTime = String.valueOf(DateFormat.format("hh:mm ",calendar));
+                                                    pop_upstartTime.setText(popUpStartTime);
+
+                                                }
+                                            },12,0,false
+                                    );
+
+                                    timePickerDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+                                    timePickerDialog.updateTime(startTimeHour,startTimeMinute);
+                                    timePickerDialog.show();
+                                }
+                            });
+
+                            pop_upendTime.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    TimePickerDialog timePickerDialog = new TimePickerDialog(
+                                            DashboardActivity.this,
+                                            android.R.style.Theme_Holo_Light_Dialog_MinWidth,
+                                            new TimePickerDialog.OnTimeSetListener() {
+                                                @Override
+                                                public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
+                                                    endTimeHour = hourOfDay;
+                                                    endTimeMinute = minute;
+
+                                                    Calendar calendar = Calendar.getInstance();
+                                                    calendar.set(0,0,0,endTimeHour,endTimeMinute);
+
+                                                    popUpEndTime = String.valueOf(DateFormat.format("hh:mm",calendar));
+                                                    pop_upendTime.setText(popUpEndTime);
+
+                                                }
+                                            },12,0,false
+                                    );
+
+                                    timePickerDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+                                    timePickerDialog.updateTime(endTimeHour,endTimeMinute);
+                                    timePickerDialog.show();
+                                }
+                            });
+
+
+
+                            pop_upaddButton.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    progressDialog.show();
+                                    startTime.setEnabled(true);
+                                    endTime.setEnabled(true);
+                                    Retrofit retrofit = new Retrofit.Builder()
+                                            .baseUrl("http://us.infrmtx.com/iot/")
+                                            .addConverterFactory(GsonConverterFactory.create())
+                                            .build();
+
+                                    Service api = retrofit.create(Service.class);
+                                    Call<String> call= api.getAddWeeks(device_id,cell.getWeek_day(),popUpStartTime,popUpEndTime);
+                                    call.enqueue(new Callback<String>() {
+                                        @Override
+                                        public void onResponse(Call<String> call, Response<String> response) {
+                                            if (response.isSuccessful()){
+                                                Toast.makeText(DashboardActivity.this, "New Time Added", Toast.LENGTH_SHORT).show();
+                                                progressDialog.dismiss();
+                                                /*startActivity(getIntent());*/
+                                                /*recreate();*/
+
+                                            }else{
+                                                Toast.makeText(DashboardActivity.this, "Error", Toast.LENGTH_SHORT).show();
+                                                progressDialog.dismiss();
+                                            }
+                                        }
+
+                                        @Override
+                                        public void onFailure(Call<String> call, Throwable t) {
+                                            progressDialog.dismiss();
+                                            Toast.makeText(DashboardActivity.this, "Failed", Toast.LENGTH_SHORT).show();
+                                            recreate();
+                                        }
+                                    });
+                                }
+                            });
+                        }
+                        else if (cell.getWeek_day()==4){
+
+                            dialogBuilder = new AlertDialog.Builder(DashboardActivity.this);
+                            v = getLayoutInflater().inflate(R.layout.popup_week_add,null);
+                            pop_upstartTime = v.findViewById(R.id.pop_upstartTime);
+                            pop_upendTime = v.findViewById(R.id.pop_upendTime);
+                            pop_upaddButton = v.findViewById(R.id.pop_upaddButton);
+                            dialogBuilder.setView(v);
+                            dialog = dialogBuilder.create();
+                            dialog.show();
+
+                            pop_upstartTime.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    TimePickerDialog timePickerDialog = new TimePickerDialog(
+                                            DashboardActivity.this,
+                                            android.R.style.Theme_Holo_Light_Dialog_MinWidth,
+                                            new TimePickerDialog.OnTimeSetListener() {
+                                                @Override
+                                                public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
+                                                    startTimeHour = hourOfDay;
+                                                    startTimeMinute = minute;
+                                                    Calendar calendar = Calendar.getInstance();
+                                                    calendar.set(0,0,0,startTimeHour,startTimeMinute);
+                                                    popUpStartTime = String.valueOf(DateFormat.format("hh:mm ",calendar));
+                                                    pop_upstartTime.setText(popUpStartTime);
+
+                                                }
+                                            },12,0,false
+                                    );
+
+                                    timePickerDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+                                    timePickerDialog.updateTime(startTimeHour,startTimeMinute);
+                                    timePickerDialog.show();
+                                }
+                            });
+
+                            pop_upendTime.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    TimePickerDialog timePickerDialog = new TimePickerDialog(
+                                            DashboardActivity.this,
+                                            android.R.style.Theme_Holo_Light_Dialog_MinWidth,
+                                            new TimePickerDialog.OnTimeSetListener() {
+                                                @Override
+                                                public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
+                                                    endTimeHour = hourOfDay;
+                                                    endTimeMinute = minute;
+
+                                                    Calendar calendar = Calendar.getInstance();
+                                                    calendar.set(0,0,0,endTimeHour,endTimeMinute);
+
+                                                    popUpEndTime = String.valueOf(DateFormat.format("hh:mm",calendar));
+                                                    pop_upendTime.setText(popUpEndTime);
+
+                                                }
+                                            },12,0,false
+                                    );
+
+                                    timePickerDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+                                    timePickerDialog.updateTime(endTimeHour,endTimeMinute);
+                                    timePickerDialog.show();
+                                }
+                            });
+
+
+
+                            pop_upaddButton.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    progressDialog.show();
+                                    startTime.setEnabled(true);
+                                    endTime.setEnabled(true);
+                                    Retrofit retrofit = new Retrofit.Builder()
+                                            .baseUrl("http://us.infrmtx.com/iot/")
+                                            .addConverterFactory(GsonConverterFactory.create())
+                                            .build();
+
+                                    Service api = retrofit.create(Service.class);
+                                    Call<String> call= api.getAddWeeks(device_id,cell.getWeek_day(),popUpStartTime,popUpEndTime);
+                                    call.enqueue(new Callback<String>() {
+                                        @Override
+                                        public void onResponse(Call<String> call, Response<String> response) {
+                                            if (response.isSuccessful()){
+                                                Toast.makeText(DashboardActivity.this, "New Time Added", Toast.LENGTH_SHORT).show();
+                                                progressDialog.dismiss();
+                                                /*startActivity(getIntent());*/
+                                                /*recreate();*/
+
+                                            }else{
+                                                Toast.makeText(DashboardActivity.this, "Error", Toast.LENGTH_SHORT).show();
+                                            }
+                                        }
+
+                                        @Override
+                                        public void onFailure(Call<String> call, Throwable t) {
+                                            progressDialog.dismiss();
+                                            Toast.makeText(DashboardActivity.this, "Failed", Toast.LENGTH_SHORT).show();
+                                            recreate();
+
+                                        }
+                                    });
+                                }
+                            });
+                        }
+                        else if (cell.getWeek_day()==5){
+
+                            dialogBuilder = new AlertDialog.Builder(DashboardActivity.this);
+                            v = getLayoutInflater().inflate(R.layout.popup_week_add,null);
+                            pop_upstartTime = v.findViewById(R.id.pop_upstartTime);
+                            pop_upendTime = v.findViewById(R.id.pop_upendTime);
+                            pop_upaddButton = v.findViewById(R.id.pop_upaddButton);
+                            dialogBuilder.setView(v);
+                            dialog = dialogBuilder.create();
+                            dialog.show();
+
+                            pop_upstartTime.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    TimePickerDialog timePickerDialog = new TimePickerDialog(
+                                            DashboardActivity.this,
+                                            android.R.style.Theme_Holo_Light_Dialog_MinWidth,
+                                            new TimePickerDialog.OnTimeSetListener() {
+                                                @Override
+                                                public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
+                                                    startTimeHour = hourOfDay;
+                                                    startTimeMinute = minute;
+                                                    Calendar calendar = Calendar.getInstance();
+                                                    calendar.set(0,0,0,startTimeHour,startTimeMinute);
+                                                    popUpStartTime = String.valueOf(DateFormat.format("hh:mm ",calendar));
+                                                    pop_upstartTime.setText(popUpStartTime);
+
+                                                }
+                                            },12,0,false
+                                    );
+
+                                    timePickerDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+                                    timePickerDialog.updateTime(startTimeHour,startTimeMinute);
+                                    timePickerDialog.show();
+                                }
+                            });
+
+                            pop_upendTime.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    TimePickerDialog timePickerDialog = new TimePickerDialog(
+                                            DashboardActivity.this,
+                                            android.R.style.Theme_Holo_Light_Dialog_MinWidth,
+                                            new TimePickerDialog.OnTimeSetListener() {
+                                                @Override
+                                                public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
+                                                    endTimeHour = hourOfDay;
+                                                    endTimeMinute = minute;
+
+                                                    Calendar calendar = Calendar.getInstance();
+                                                    calendar.set(0,0,0,endTimeHour,endTimeMinute);
+
+                                                    popUpEndTime = String.valueOf(DateFormat.format("hh:mm",calendar));
+                                                    pop_upendTime.setText(popUpEndTime);
+
+                                                }
+                                            },12,0,false
+                                    );
+
+                                    timePickerDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+                                    timePickerDialog.updateTime(endTimeHour,endTimeMinute);
+                                    timePickerDialog.show();
+                                }
+                            });
+
+
+
+                            pop_upaddButton.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    progressDialog.show();
+                                    startTime.setEnabled(true);
+                                    endTime.setEnabled(true);
+                                    Retrofit retrofit = new Retrofit.Builder()
+                                            .baseUrl("http://us.infrmtx.com/iot/")
+                                            .addConverterFactory(GsonConverterFactory.create())
+                                            .build();
+
+                                    Service api = retrofit.create(Service.class);
+                                    Call<String> call= api.getAddWeeks(device_id,cell.getWeek_day(),popUpStartTime,popUpEndTime);
+                                    call.enqueue(new Callback<String>() {
+                                        @Override
+                                        public void onResponse(Call<String> call, Response<String> response) {
+                                            if (response.isSuccessful()){
+                                                progressDialog.dismiss();
+                                                Toast.makeText(DashboardActivity.this, "New Time Added", Toast.LENGTH_SHORT).show();
+
+                                                /*startActivity(getIntent());*/
+                                                /*recreate();*/
+
+                                            }else{
+                                                progressDialog.dismiss();
+                                                Toast.makeText(DashboardActivity.this, "Error", Toast.LENGTH_SHORT).show();
+                                            }
+                                        }
+
+                                        @Override
+                                        public void onFailure(Call<String> call, Throwable t) {
+                                            progressDialog.dismiss();
+                                            Toast.makeText(DashboardActivity.this, "Failed", Toast.LENGTH_SHORT).show();
+                                            recreate();
+                                        }
+                                    });
+                                }
+                            });
+                        }
+                        else if (cell.getWeek_day()==6){
+
+                            dialogBuilder = new AlertDialog.Builder(DashboardActivity.this);
+                            v = getLayoutInflater().inflate(R.layout.popup_week_add,null);
+                            pop_upstartTime = v.findViewById(R.id.pop_upstartTime);
+                            pop_upendTime = v.findViewById(R.id.pop_upendTime);
+                            pop_upaddButton = v.findViewById(R.id.pop_upaddButton);
+                            dialogBuilder.setView(v);
+                            dialog = dialogBuilder.create();
+                            dialog.show();
+
+                            pop_upstartTime.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    TimePickerDialog timePickerDialog = new TimePickerDialog(
+                                            DashboardActivity.this,
+                                            android.R.style.Theme_Holo_Light_Dialog_MinWidth,
+                                            new TimePickerDialog.OnTimeSetListener() {
+                                                @Override
+                                                public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
+                                                    startTimeHour = hourOfDay;
+                                                    startTimeMinute = minute;
+                                                    Calendar calendar = Calendar.getInstance();
+                                                    calendar.set(0,0,0,startTimeHour,startTimeMinute);
+                                                    popUpStartTime = String.valueOf(DateFormat.format("hh:mm ",calendar));
+                                                    pop_upstartTime.setText(popUpStartTime);
+
+                                                }
+                                            },12,0,false
+                                    );
+
+                                    timePickerDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+                                    timePickerDialog.updateTime(startTimeHour,startTimeMinute);
+                                    timePickerDialog.show();
+                                }
+                            });
+
+                            pop_upendTime.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    TimePickerDialog timePickerDialog = new TimePickerDialog(
+                                            DashboardActivity.this,
+                                            android.R.style.Theme_Holo_Light_Dialog_MinWidth,
+                                            new TimePickerDialog.OnTimeSetListener() {
+                                                @Override
+                                                public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
+                                                    endTimeHour = hourOfDay;
+                                                    endTimeMinute = minute;
+
+                                                    Calendar calendar = Calendar.getInstance();
+                                                    calendar.set(0,0,0,endTimeHour,endTimeMinute);
+
+                                                    popUpEndTime = String.valueOf(DateFormat.format("hh:mm",calendar));
+                                                    pop_upendTime.setText(popUpEndTime);
+
+                                                }
+                                            },12,0,false
+                                    );
+
+                                    timePickerDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+                                    timePickerDialog.updateTime(endTimeHour,endTimeMinute);
+                                    timePickerDialog.show();
+                                }
+                            });
+
+
+
+                            pop_upaddButton.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    progressDialog.show();
+                                    startTime.setEnabled(true);
+                                    endTime.setEnabled(true);
+                                    Retrofit retrofit = new Retrofit.Builder()
+                                            .baseUrl("http://us.infrmtx.com/iot/")
+                                            .addConverterFactory(GsonConverterFactory.create())
+                                            .build();
+
+                                    Service api = retrofit.create(Service.class);
+                                    Call<String> call= api.getAddWeeks(device_id,cell.getWeek_day(),popUpStartTime,popUpEndTime);
+                                    call.enqueue(new Callback<String>() {
+                                        @Override
+                                        public void onResponse(Call<String> call, Response<String> response) {
+                                            if (response.isSuccessful()){
+                                                Toast.makeText(DashboardActivity.this, "New Time Added", Toast.LENGTH_SHORT).show();
+
+                                                /*startActivity(getIntent());*/
+                                                /*recreate();*/
+
+                                            }else{
+                                                Toast.makeText(DashboardActivity.this, "Error", Toast.LENGTH_SHORT).show();
+                                            }
+                                        }
+
+                                        @Override
+                                        public void onFailure(Call<String> call, Throwable t) {
+                                            progressDialog.dismiss();
+                                            Toast.makeText(DashboardActivity.this, "Failed", Toast.LENGTH_SHORT).show();
+                                            recreate();
+                                        }
+                                    });
+                                }
+                            });
+                        }
                     }
                 });
 
@@ -226,22 +920,25 @@ public class DashboardActivity extends AppCompatActivity {
                                 .baseUrl("http://us.infrmtx.com/iot/")
                                 .addConverterFactory(GsonConverterFactory.create())
                                 .build();
-
+                        progressDialog.show();
                         Service api = retrofit.create(Service.class);
                         Call<JSONObject> call= api.getDeleteWeeks(cell.getDevice_id(),cell.getDay_id());
                         call.enqueue(new Callback<JSONObject>() {
                             @Override
                             public void onResponse(Call<JSONObject> call, Response<JSONObject> response) {
                                 if (response.isSuccessful()){
+                                    progressDialog.dismiss();
                                     Toast.makeText(DashboardActivity.this, "Delete Done", Toast.LENGTH_SHORT).show();
                                     recreate();
                                 }else{
+                                    progressDialog.dismiss();
                                     Toast.makeText(DashboardActivity.this, "Error", Toast.LENGTH_SHORT).show();
                                 }
                             }
 
                             @Override
                             public void onFailure(Call<JSONObject> call, Throwable t) {
+                                progressDialog.dismiss();
                                 Toast.makeText(DashboardActivity.this, "Failed", Toast.LENGTH_SHORT).show();
                                 recreate();
                             }
@@ -254,30 +951,640 @@ public class DashboardActivity extends AppCompatActivity {
                 editButton.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        startTime.setEnabled(true);
-                        endTime.setEnabled(true);
-                        Retrofit retrofit = new Retrofit.Builder()
-                                .baseUrl("http://us.infrmtx.com/iot/")
-                                .addConverterFactory(GsonConverterFactory.create())
-                                .build();
+                        if (cell.getWeek_day()==1){
+                            dialogBuilder = new AlertDialog.Builder(DashboardActivity.this);
+                            v = getLayoutInflater().inflate(R.layout.popup_week_add,null);
+                            pop_upstartTime = v.findViewById(R.id.pop_upstartTime);
+                            pop_upendTime = v.findViewById(R.id.pop_upendTime);
+                            pop_upaddButton = v.findViewById(R.id.pop_upaddButton);
+                            dialogBuilder.setView(v);
+                            dialog = dialogBuilder.create();
+                            dialog.show();
 
-                        Service api = retrofit.create(Service.class);
-                        Call<String> call= api.getEditWeeks(cell.getDevice_id(),cell.getWeek_day(),cell.getStart_time(),cell.getEnd_time());
-                        call.enqueue(new Callback<String>() {
-                            @Override
-                            public void onResponse(Call<String> call, Response<String> response) {
-                                if (response.isSuccessful()){
-                                    Toast.makeText(DashboardActivity.this, "Edit successful", Toast.LENGTH_SHORT).show();
-                                }else{
-                                    Toast.makeText(DashboardActivity.this, "Error", Toast.LENGTH_SHORT).show();
+                            pop_upstartTime.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    TimePickerDialog timePickerDialog = new TimePickerDialog(
+                                            DashboardActivity.this,
+                                            android.R.style.Theme_Holo_Light_Dialog_MinWidth,
+                                            new TimePickerDialog.OnTimeSetListener() {
+                                                @Override
+                                                public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
+                                                    startTimeHour = hourOfDay;
+                                                    startTimeMinute = minute;
+                                                    Calendar calendar = Calendar.getInstance();
+                                                    calendar.set(0,0,0,startTimeHour,startTimeMinute);
+                                                    popUpStartTime = String.valueOf(DateFormat.format("hh:mm ",calendar));
+                                                    pop_upstartTime.setText(popUpStartTime);
+
+                                                }
+                                            },12,0,false
+                                    );
+
+                                    timePickerDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+                                    timePickerDialog.updateTime(startTimeHour,startTimeMinute);
+                                    timePickerDialog.show();
                                 }
-                            }
+                            });
 
-                            @Override
-                            public void onFailure(Call<String> call, Throwable t) {
-                                Toast.makeText(DashboardActivity.this, "Failed", Toast.LENGTH_SHORT).show();
-                            }
-                        });
+                            pop_upendTime.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    TimePickerDialog timePickerDialog = new TimePickerDialog(
+                                            DashboardActivity.this,
+                                            android.R.style.Theme_Holo_Light_Dialog_MinWidth,
+                                            new TimePickerDialog.OnTimeSetListener() {
+                                                @Override
+                                                public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
+                                                    endTimeHour = hourOfDay;
+                                                    endTimeMinute = minute;
+
+                                                    Calendar calendar = Calendar.getInstance();
+                                                    calendar.set(0,0,0,endTimeHour,endTimeMinute);
+
+                                                    popUpEndTime = String.valueOf(DateFormat.format("hh:mm",calendar));
+                                                    pop_upendTime.setText(popUpEndTime);
+
+                                                }
+                                            },12,0,false
+                                    );
+
+                                    timePickerDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+                                    timePickerDialog.updateTime(endTimeHour,endTimeMinute);
+                                    timePickerDialog.show();
+                                }
+                            });
+
+
+
+                            pop_upaddButton.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    progressDialog.show();
+                                    startTime.setEnabled(true);
+                                    endTime.setEnabled(true);
+                                    Retrofit retrofit = new Retrofit.Builder()
+                                            .baseUrl("http://us.infrmtx.com/iot/")
+                                            .addConverterFactory(GsonConverterFactory.create())
+                                            .build();
+
+                                    Service api = retrofit.create(Service.class);
+                                    Call<JSONObject> call= api.getEditWeeks(device_id,cell.getWeek_day(),popUpStartTime,popUpEndTime);
+                                    call.enqueue(new Callback<JSONObject>() {
+                                        @Override
+                                        public void onResponse(Call<JSONObject> call, Response<JSONObject> response) {
+                                            if (response.isSuccessful()){
+                                                progressDialog.dismiss();
+                                                Toast.makeText(DashboardActivity.this, "New Time Added", Toast.LENGTH_SHORT).show();
+
+                                                startActivity(getIntent());
+                                                recreate();
+
+                                            }else{
+                                                progressDialog.dismiss();
+                                                Toast.makeText(DashboardActivity.this, "Error", Toast.LENGTH_SHORT).show();
+                                            }
+                                        }
+
+                                        @Override
+                                        public void onFailure(Call<JSONObject> call, Throwable t) {
+                                            progressDialog.dismiss();
+                                            Toast.makeText(DashboardActivity.this, "Failed", Toast.LENGTH_SHORT).show();
+                                            recreate();
+                                        }
+                                    });
+                                }
+                            });
+                        }
+                        else if (cell.getWeek_day()==2){
+
+                            dialogBuilder = new AlertDialog.Builder(DashboardActivity.this);
+                            v = getLayoutInflater().inflate(R.layout.popup_week_edit,null);
+                            pop_upstartTime = v.findViewById(R.id.pop_upstartTime);
+                            pop_upendTime = v.findViewById(R.id.pop_upendTime);
+                            pop_upaddButton = v.findViewById(R.id.pop_upaddButton);
+                            dialogBuilder.setView(v);
+                            dialog = dialogBuilder.create();
+                            dialog.show();
+
+                            pop_upstartTime.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    TimePickerDialog timePickerDialog = new TimePickerDialog(
+                                            DashboardActivity.this,
+                                            android.R.style.Theme_Holo_Light_Dialog_MinWidth,
+                                            new TimePickerDialog.OnTimeSetListener() {
+                                                @Override
+                                                public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
+                                                    startTimeHour = hourOfDay;
+                                                    startTimeMinute = minute;
+                                                    Calendar calendar = Calendar.getInstance();
+                                                    calendar.set(0,0,0,startTimeHour,startTimeMinute);
+                                                    popUpStartTime = String.valueOf(DateFormat.format("hh:mm ",calendar));
+                                                    pop_upstartTime.setText(popUpStartTime);
+
+                                                }
+                                            },12,0,false
+                                    );
+
+                                    timePickerDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+                                    timePickerDialog.updateTime(startTimeHour,startTimeMinute);
+                                    timePickerDialog.show();
+                                }
+                            });
+
+                            pop_upendTime.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    TimePickerDialog timePickerDialog = new TimePickerDialog(
+                                            DashboardActivity.this,
+                                            android.R.style.Theme_Holo_Light_Dialog_MinWidth,
+                                            new TimePickerDialog.OnTimeSetListener() {
+                                                @Override
+                                                public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
+                                                    endTimeHour = hourOfDay;
+                                                    endTimeMinute = minute;
+
+                                                    Calendar calendar = Calendar.getInstance();
+                                                    calendar.set(0,0,0,endTimeHour,endTimeMinute);
+
+                                                    popUpEndTime = String.valueOf(DateFormat.format("hh:mm",calendar));
+                                                    pop_upendTime.setText(popUpEndTime);
+
+                                                }
+                                            },12,0,false
+                                    );
+
+                                    timePickerDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+                                    timePickerDialog.updateTime(endTimeHour,endTimeMinute);
+                                    timePickerDialog.show();
+                                }
+                            });
+
+
+
+                            pop_upaddButton.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    startTime.setEnabled(true);
+                                    endTime.setEnabled(true);
+                                    progressDialog.show();
+                                    Retrofit retrofit = new Retrofit.Builder()
+                                            .baseUrl("http://us.infrmtx.com/iot/")
+                                            .addConverterFactory(GsonConverterFactory.create())
+                                            .build();
+
+                                    Service api = retrofit.create(Service.class);
+                                    Call<JSONObject> call= api.getEditWeeks(device_id,cell.getDay_id(),popUpStartTime,popUpEndTime);
+                                    call.enqueue(new Callback<JSONObject>() {
+                                        @Override
+                                        public void onResponse(Call<JSONObject> call, Response<JSONObject> response) {
+                                            if (response.isSuccessful()){
+                                                progressDialog.dismiss();
+                                                Toast.makeText(DashboardActivity.this, "New Time Added", Toast.LENGTH_SHORT).show();
+
+                                                /*startActivity(getIntent());*/
+                                                /*recreate();*/
+
+                                            }else{
+                                                progressDialog.dismiss();
+                                                Toast.makeText(DashboardActivity.this, "Error", Toast.LENGTH_SHORT).show();
+                                            }
+                                        }
+
+                                        @Override
+                                        public void onFailure(Call<JSONObject> call, Throwable t) {
+                                            progressDialog.dismiss();
+                                            Toast.makeText(DashboardActivity.this, "Failed", Toast.LENGTH_SHORT).show();
+                                            recreate();
+                                        }
+                                    });
+                                }
+                            });
+                        }
+                        else if (cell.getWeek_day()==3){
+
+                            dialogBuilder = new AlertDialog.Builder(DashboardActivity.this);
+                            v = getLayoutInflater().inflate(R.layout.popup_week_edit,null);
+                            pop_upstartTime = v.findViewById(R.id.pop_upstartTime);
+                            pop_upendTime = v.findViewById(R.id.pop_upendTime);
+                            pop_upaddButton = v.findViewById(R.id.pop_upaddButton);
+                            dialogBuilder.setView(v);
+                            dialog = dialogBuilder.create();
+                            dialog.show();
+
+                            pop_upstartTime.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    TimePickerDialog timePickerDialog = new TimePickerDialog(
+                                            DashboardActivity.this,
+                                            android.R.style.Theme_Holo_Light_Dialog_MinWidth,
+                                            new TimePickerDialog.OnTimeSetListener() {
+                                                @Override
+                                                public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
+                                                    startTimeHour = hourOfDay;
+                                                    startTimeMinute = minute;
+                                                    Calendar calendar = Calendar.getInstance();
+                                                    calendar.set(0,0,0,startTimeHour,startTimeMinute);
+                                                    popUpStartTime = String.valueOf(DateFormat.format("hh:mm ",calendar));
+                                                    pop_upstartTime.setText(popUpStartTime);
+
+                                                }
+                                            },12,0,false
+                                    );
+
+                                    timePickerDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+                                    timePickerDialog.updateTime(startTimeHour,startTimeMinute);
+                                    timePickerDialog.show();
+                                }
+                            });
+
+                            pop_upendTime.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    TimePickerDialog timePickerDialog = new TimePickerDialog(
+                                            DashboardActivity.this,
+                                            android.R.style.Theme_Holo_Light_Dialog_MinWidth,
+                                            new TimePickerDialog.OnTimeSetListener() {
+                                                @Override
+                                                public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
+                                                    endTimeHour = hourOfDay;
+                                                    endTimeMinute = minute;
+
+                                                    Calendar calendar = Calendar.getInstance();
+                                                    calendar.set(0,0,0,endTimeHour,endTimeMinute);
+
+                                                    popUpEndTime = String.valueOf(DateFormat.format("hh:mm",calendar));
+                                                    pop_upendTime.setText(popUpEndTime);
+
+                                                }
+                                            },12,0,false
+                                    );
+
+                                    timePickerDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+                                    timePickerDialog.updateTime(endTimeHour,endTimeMinute);
+                                    timePickerDialog.show();
+                                }
+                            });
+
+
+
+                            pop_upaddButton.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    progressDialog.show();
+                                    startTime.setEnabled(true);
+                                    endTime.setEnabled(true);
+                                    Retrofit retrofit = new Retrofit.Builder()
+                                            .baseUrl("http://us.infrmtx.com/iot/")
+                                            .addConverterFactory(GsonConverterFactory.create())
+                                            .build();
+
+                                    Service api = retrofit.create(Service.class);
+                                    Call<JSONObject> call= api.getEditWeeks(device_id,cell.getDay_id(),popUpStartTime,popUpEndTime);
+                                    call.enqueue(new Callback<JSONObject>() {
+                                        @Override
+                                        public void onResponse(Call<JSONObject> call, Response<JSONObject> response) {
+                                            if (response.isSuccessful()){
+                                                progressDialog.dismiss();
+                                                Toast.makeText(DashboardActivity.this, "New Time Added", Toast.LENGTH_SHORT).show();
+
+                                                startActivity(getIntent());
+                                                recreate();
+
+                                            }else{
+                                                progressDialog.dismiss();
+                                                Toast.makeText(DashboardActivity.this, "Error", Toast.LENGTH_SHORT).show();
+                                            }
+                                        }
+
+                                        @Override
+                                        public void onFailure(Call<JSONObject> call, Throwable t) {
+                                            progressDialog.dismiss();
+                                            Toast.makeText(DashboardActivity.this, "Failed", Toast.LENGTH_SHORT).show();
+                                            recreate();
+                                        }
+                                    });
+                                }
+                            });
+                        }
+                        else if (cell.getWeek_day()==4){
+                            dialogBuilder = new AlertDialog.Builder(DashboardActivity.this);
+                            v = getLayoutInflater().inflate(R.layout.popup_week_edit,null);
+                            pop_upstartTime = v.findViewById(R.id.pop_upstartTime);
+                            pop_upendTime = v.findViewById(R.id.pop_upendTime);
+                            pop_upaddButton = v.findViewById(R.id.pop_upaddButton);
+                            dialogBuilder.setView(v);
+                            dialog = dialogBuilder.create();
+                            dialog.show();
+
+                            pop_upstartTime.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    TimePickerDialog timePickerDialog = new TimePickerDialog(
+                                            DashboardActivity.this,
+                                            android.R.style.Theme_Holo_Light_Dialog_MinWidth,
+                                            new TimePickerDialog.OnTimeSetListener() {
+                                                @Override
+                                                public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
+                                                    startTimeHour = hourOfDay;
+                                                    startTimeMinute = minute;
+                                                    Calendar calendar = Calendar.getInstance();
+                                                    calendar.set(0,0,0,startTimeHour,startTimeMinute);
+                                                    popUpStartTime = String.valueOf(DateFormat.format("hh:mm ",calendar));
+                                                    pop_upstartTime.setText(popUpStartTime);
+
+                                                }
+                                            },12,0,false
+                                    );
+
+                                    timePickerDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+                                    timePickerDialog.updateTime(startTimeHour,startTimeMinute);
+                                    timePickerDialog.show();
+                                }
+                            });
+
+                            pop_upendTime.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    TimePickerDialog timePickerDialog = new TimePickerDialog(
+                                            DashboardActivity.this,
+                                            android.R.style.Theme_Holo_Light_Dialog_MinWidth,
+                                            new TimePickerDialog.OnTimeSetListener() {
+                                                @Override
+                                                public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
+                                                    endTimeHour = hourOfDay;
+                                                    endTimeMinute = minute;
+
+                                                    Calendar calendar = Calendar.getInstance();
+                                                    calendar.set(0,0,0,endTimeHour,endTimeMinute);
+
+                                                    popUpEndTime = String.valueOf(DateFormat.format("hh:mm",calendar));
+                                                    pop_upendTime.setText(popUpEndTime);
+
+                                                }
+                                            },12,0,false
+                                    );
+
+                                    timePickerDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+                                    timePickerDialog.updateTime(endTimeHour,endTimeMinute);
+                                    timePickerDialog.show();
+                                }
+                            });
+
+
+
+                            pop_upaddButton.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    progressDialog.show();
+                                    startTime.setEnabled(true);
+                                    endTime.setEnabled(true);
+                                    Retrofit retrofit = new Retrofit.Builder()
+                                            .baseUrl("http://us.infrmtx.com/iot/")
+                                            .addConverterFactory(GsonConverterFactory.create())
+                                            .build();
+
+                                    Service api = retrofit.create(Service.class);
+                                    Call<JSONObject> call= api.getEditWeeks(device_id,cell.getDay_id(),popUpStartTime,popUpEndTime);
+                                    call.enqueue(new Callback<JSONObject>() {
+                                        @Override
+                                        public void onResponse(Call<JSONObject> call, Response<JSONObject> response) {
+                                            if (response.isSuccessful()){
+                                                progressDialog.dismiss();
+                                                Toast.makeText(DashboardActivity.this, "New Time Added", Toast.LENGTH_SHORT).show();
+
+                                                startActivity(getIntent());
+                                                recreate();
+
+                                            }else{
+                                                progressDialog.dismiss();
+                                                Toast.makeText(DashboardActivity.this, "Error", Toast.LENGTH_SHORT).show();
+                                            }
+                                        }
+
+                                        @Override
+                                        public void onFailure(Call<JSONObject> call, Throwable t) {
+                                            progressDialog.dismiss();
+                                            Toast.makeText(DashboardActivity.this, "Failed", Toast.LENGTH_SHORT).show();
+                                            recreate();
+                                        }
+                                    });
+                                }
+                            });
+                        }
+                        else if (cell.getWeek_day()==5){
+                            dialogBuilder = new AlertDialog.Builder(DashboardActivity.this);
+                            v = getLayoutInflater().inflate(R.layout.popup_week_edit,null);
+                            pop_upstartTime = v.findViewById(R.id.pop_upstartTime);
+                            pop_upendTime = v.findViewById(R.id.pop_upendTime);
+                            pop_upaddButton = v.findViewById(R.id.pop_upaddButton);
+                            dialogBuilder.setView(v);
+                            dialog = dialogBuilder.create();
+                            dialog.show();
+
+                            pop_upstartTime.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    TimePickerDialog timePickerDialog = new TimePickerDialog(
+                                            DashboardActivity.this,
+                                            android.R.style.Theme_Holo_Light_Dialog_MinWidth,
+                                            new TimePickerDialog.OnTimeSetListener() {
+                                                @Override
+                                                public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
+                                                    startTimeHour = hourOfDay;
+                                                    startTimeMinute = minute;
+                                                    Calendar calendar = Calendar.getInstance();
+                                                    calendar.set(0,0,0,startTimeHour,startTimeMinute);
+                                                    popUpStartTime = String.valueOf(DateFormat.format("hh:mm ",calendar));
+                                                    pop_upstartTime.setText(popUpStartTime);
+
+                                                }
+                                            },12,0,false
+                                    );
+
+                                    timePickerDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+                                    timePickerDialog.updateTime(startTimeHour,startTimeMinute);
+                                    timePickerDialog.show();
+                                }
+                            });
+
+                            pop_upendTime.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    TimePickerDialog timePickerDialog = new TimePickerDialog(
+                                            DashboardActivity.this,
+                                            android.R.style.Theme_Holo_Light_Dialog_MinWidth,
+                                            new TimePickerDialog.OnTimeSetListener() {
+                                                @Override
+                                                public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
+                                                    endTimeHour = hourOfDay;
+                                                    endTimeMinute = minute;
+
+                                                    Calendar calendar = Calendar.getInstance();
+                                                    calendar.set(0,0,0,endTimeHour,endTimeMinute);
+
+                                                    popUpEndTime = String.valueOf(DateFormat.format("hh:mm",calendar));
+                                                    pop_upendTime.setText(popUpEndTime);
+
+                                                }
+                                            },12,0,false
+                                    );
+
+                                    timePickerDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+                                    timePickerDialog.updateTime(endTimeHour,endTimeMinute);
+                                    timePickerDialog.show();
+                                }
+                            });
+
+
+
+                            pop_upaddButton.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    progressDialog.show();
+                                    startTime.setEnabled(true);
+                                    endTime.setEnabled(true);
+                                    Retrofit retrofit = new Retrofit.Builder()
+                                            .baseUrl("http://us.infrmtx.com/iot/")
+                                            .addConverterFactory(GsonConverterFactory.create())
+                                            .build();
+
+                                    Service api = retrofit.create(Service.class);
+                                    Call<JSONObject> call= api.getEditWeeks(device_id,cell.getDay_id(),popUpStartTime,popUpEndTime);
+                                    call.enqueue(new Callback<JSONObject>() {
+                                        @Override
+                                        public void onResponse(Call<JSONObject> call, Response<JSONObject> response) {
+                                            if (response.isSuccessful()){
+                                                progressDialog.dismiss();
+                                                Toast.makeText(DashboardActivity.this, "New Time Added", Toast.LENGTH_SHORT).show();
+
+                                                startActivity(getIntent());
+                                                recreate();
+
+                                            }else{
+                                                progressDialog.dismiss();
+                                                Toast.makeText(DashboardActivity.this, "Error", Toast.LENGTH_SHORT).show();
+                                            }
+                                        }
+
+                                        @Override
+                                        public void onFailure(Call<JSONObject> call, Throwable t) {
+                                            progressDialog.dismiss();
+                                            Toast.makeText(DashboardActivity.this, "Failed", Toast.LENGTH_SHORT).show();
+                                            recreate();
+                                        }
+                                    });
+                                }
+                            });
+                        }
+                        else if (cell.getWeek_day()==6){
+
+                            dialogBuilder = new AlertDialog.Builder(DashboardActivity.this);
+                            v = getLayoutInflater().inflate(R.layout.popup_week_edit,null);
+                            pop_upstartTime = v.findViewById(R.id.pop_upstartTime);
+                            pop_upendTime = v.findViewById(R.id.pop_upendTime);
+                            pop_upaddButton = v.findViewById(R.id.pop_upaddButton);
+                            dialogBuilder.setView(v);
+                            dialog = dialogBuilder.create();
+                            dialog.show();
+
+                            pop_upstartTime.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    TimePickerDialog timePickerDialog = new TimePickerDialog(
+                                            DashboardActivity.this,
+                                            android.R.style.Theme_Holo_Light_Dialog_MinWidth,
+                                            new TimePickerDialog.OnTimeSetListener() {
+                                                @Override
+                                                public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
+                                                    startTimeHour = hourOfDay;
+                                                    startTimeMinute = minute;
+                                                    Calendar calendar = Calendar.getInstance();
+                                                    calendar.set(0,0,0,startTimeHour,startTimeMinute);
+                                                    popUpStartTime = String.valueOf(DateFormat.format("hh:mm ",calendar));
+                                                    pop_upstartTime.setText(popUpStartTime);
+
+                                                }
+                                            },12,0,false
+                                    );
+
+                                    timePickerDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+                                    timePickerDialog.updateTime(startTimeHour,startTimeMinute);
+                                    timePickerDialog.show();
+                                }
+                            });
+
+                            pop_upendTime.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    TimePickerDialog timePickerDialog = new TimePickerDialog(
+                                            DashboardActivity.this,
+                                            android.R.style.Theme_Holo_Light_Dialog_MinWidth,
+                                            new TimePickerDialog.OnTimeSetListener() {
+                                                @Override
+                                                public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
+                                                    endTimeHour = hourOfDay;
+                                                    endTimeMinute = minute;
+
+                                                    Calendar calendar = Calendar.getInstance();
+                                                    calendar.set(0,0,0,endTimeHour,endTimeMinute);
+
+                                                    popUpEndTime = String.valueOf(DateFormat.format("hh:mm",calendar));
+                                                    pop_upendTime.setText(popUpEndTime);
+
+                                                }
+                                            },12,0,false
+                                    );
+
+                                    timePickerDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+                                    timePickerDialog.updateTime(endTimeHour,endTimeMinute);
+                                    timePickerDialog.show();
+                                }
+                            });
+
+
+
+                            pop_upaddButton.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    startTime.setEnabled(true);
+                                    endTime.setEnabled(true);
+                                    progressDialog.show();
+                                    Retrofit retrofit = new Retrofit.Builder()
+                                            .baseUrl("http://us.infrmtx.com/iot/")
+                                            .addConverterFactory(GsonConverterFactory.create())
+                                            .build();
+
+                                    Service api = retrofit.create(Service.class);
+                                    Call<JSONObject> call= api.getEditWeeks(device_id,cell.getDay_id(),popUpStartTime,popUpEndTime);
+                                    call.enqueue(new Callback<JSONObject>() {
+                                        @Override
+                                        public void onResponse(Call<JSONObject> call, Response<JSONObject> response) {
+                                            if (response.isSuccessful()){
+                                                progressDialog.dismiss();
+                                                Toast.makeText(DashboardActivity.this, "New Time Added", Toast.LENGTH_SHORT).show();
+
+                                                startActivity(getIntent());
+                                                recreate();
+
+                                            }else{
+                                                progressDialog.dismiss();
+                                                Toast.makeText(DashboardActivity.this, "Error", Toast.LENGTH_SHORT).show();
+                                            }
+                                        }
+
+                                        @Override
+                                        public void onFailure(Call<JSONObject> call, Throwable t) {
+                                            progressDialog.dismiss();
+                                            Toast.makeText(DashboardActivity.this, "Failed", Toast.LENGTH_SHORT).show();
+                                            recreate();
+                                        }
+                                    });
+                                }
+                            });
+                        }
+
                     }
                 });
             }
@@ -285,106 +1592,6 @@ public class DashboardActivity extends AppCompatActivity {
         }
     }
 
-    public void createNewContactDialog(View v){
-        dialogBuilder = new AlertDialog.Builder(this);
-        v = getLayoutInflater().inflate(R.layout.popup_week_add,null);
-        pop_upstartTime = v.findViewById(R.id.pop_upstartTime);
-        pop_upendTime = v.findViewById(R.id.pop_upendTime);
-        pop_upaddButton = v.findViewById(R.id.pop_upaddButton);
-        dialogBuilder.setView(v);
-        dialog = dialogBuilder.create();
-        dialog.show();
 
-        pop_upstartTime.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                TimePickerDialog timePickerDialog = new TimePickerDialog(
-                        DashboardActivity.this,
-                        android.R.style.Theme_Holo_Light_Dialog_MinWidth,
-                        new TimePickerDialog.OnTimeSetListener() {
-                            @Override
-                            public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
-                                startTimeHour = hourOfDay;
-                                startTimeMinute = minute;
-                                Calendar calendar = Calendar.getInstance();
-                                calendar.set(0,0,0,startTimeHour,startTimeMinute);
-                                popUpStartTime = String.valueOf(DateFormat.format("hh:mm ",calendar));
-                                pop_upstartTime.setText(popUpStartTime);
-
-                            }
-                        },12,0,false
-                );
-
-                timePickerDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
-                timePickerDialog.updateTime(startTimeHour,startTimeMinute);
-                timePickerDialog.show();
-            }
-        });
-
-        pop_upendTime.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                TimePickerDialog timePickerDialog = new TimePickerDialog(
-                        DashboardActivity.this,
-                        android.R.style.Theme_Holo_Light_Dialog_MinWidth,
-                        new TimePickerDialog.OnTimeSetListener() {
-                            @Override
-                            public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
-                                endTimeHour = hourOfDay;
-                                endTimeMinute = minute;
-
-                                Calendar calendar = Calendar.getInstance();
-                                calendar.set(0,0,0,endTimeHour,endTimeMinute);
-
-                                popUpEndTime = String.valueOf(DateFormat.format("hh:mm",calendar));
-                                pop_upendTime.setText(popUpEndTime);
-
-                            }
-                        },12,0,false
-                );
-
-                timePickerDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
-                timePickerDialog.updateTime(endTimeHour,endTimeMinute);
-                timePickerDialog.show();
-            }
-        });
-
-
-
-        pop_upaddButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startTime.setEnabled(true);
-                        endTime.setEnabled(true);
-                        Retrofit retrofit = new Retrofit.Builder()
-                                .baseUrl("http://us.infrmtx.com/iot/")
-                                .addConverterFactory(GsonConverterFactory.create())
-                                .build();
-
-                        Service api = retrofit.create(Service.class);
-                        Call<String> call= api.getAddWeeks(device_id,weekDayId,popUpStartTime,popUpEndTime);
-                        call.enqueue(new Callback<String>() {
-                            @Override
-                            public void onResponse(Call<String> call, Response<String> response) {
-                                if (response.isSuccessful()){
-                                    Toast.makeText(DashboardActivity.this, "New Time Added", Toast.LENGTH_SHORT).show();
-
-                                    /*startActivity(getIntent());*/
-                                    /*recreate();*/
-
-                                }else{
-                                    Toast.makeText(DashboardActivity.this, "Error", Toast.LENGTH_SHORT).show();
-                                }
-                            }
-
-                            @Override
-                            public void onFailure(Call<String> call, Throwable t) {
-                                Toast.makeText(DashboardActivity.this, "Failed", Toast.LENGTH_SHORT).show();
-                                recreate();
-                            }
-                        });
-            }
-        });
-    }
     
 }

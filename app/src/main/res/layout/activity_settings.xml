@@ -8,8 +8,7 @@
     android:orientation="vertical"
     android:id="@+id/drawer"
     tools:openDrawer="start"
-    tools:context=".DashboardActivity">
-
+    tools:context=".SettingsActivity">
 
     <RelativeLayout
         android:layout_width="wrap_content"
@@ -96,8 +95,8 @@
                     android:orientation="vertical">
 
 
-                    <ListView
-                        android:id="@+id/listview"
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/recyclerView"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"/>
 
@@ -118,6 +117,5 @@
         <include
             layout="@layout/main_nav_drawer"/>
     </RelativeLayout>
-
 
 </androidx.drawerlayout.widget.DrawerLayout>

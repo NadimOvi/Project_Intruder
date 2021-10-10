@@ -22,7 +22,7 @@
                 android:layout_height="wrap_content"
                 android:background="#ff0092f4"
                 android:textColor="#FFFFFF"
-                android:text="Add"
+                android:text="Edit"
                 android:textAlignment="center"
                 android:fontFamily="@font/lexenddeca"
                 android:textStyle="bold"
