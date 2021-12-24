@@ -147,14 +147,14 @@ public class SettingsActivity extends AppCompatActivity {
                     saveShowAdapter(settingsModels,mainDeviceID);
                 }else{
                     progressDialog.dismiss();
-                    Toast.makeText(SettingsActivity.this, "Error", Toast.LENGTH_SHORT).show();
+                  /*  Toast.makeText(SettingsActivity.this, "Error", Toast.LENGTH_SHORT).show();*/
                 }
             }
 
             @Override
             public void onFailure(Call<SettingsMainModel> call, Throwable t) {
                 progressDialog.dismiss();
-                Toast.makeText(SettingsActivity.this, "Failed", Toast.LENGTH_SHORT).show();
+              /*  Toast.makeText(SettingsActivity.this, "Failed", Toast.LENGTH_SHORT).show();*/
             }
         });
     }

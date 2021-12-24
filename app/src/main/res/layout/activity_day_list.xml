@@ -62,6 +62,18 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="10dp">
 
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:layout_marginEnd="8dp"
+                        android:fontFamily="@font/lexenddeca"
+                        android:text="License valid till"
+                        android:textColor="@color/black"
+                        android:textSize="15sp"
+                        app:layout_constraintEnd_toStartOf="@+id/linearLayout"
+                        app:layout_constraintTop_toTopOf="parent" />
+
                     <LinearLayout
                         android:id="@+id/linearLayout"
                         android:layout_width="wrap_content"
@@ -94,6 +106,31 @@
                     android:layout_marginBottom="20dp"
                     android:orientation="vertical">
 
+                    <LinearLayout
+                        android:id="@+id/addLinearButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="right"
+                        android:gravity="right"
+                        android:layout_marginRight="10dp"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Date Add"
+                            android:gravity="center"
+                            android:layout_gravity="center"
+                            android:textSize="18sp"
+                            android:textColor="@color/darkYellow"/>
+                        <Button
+                            android:id="@+id/addDateButton"
+                            android:layout_width="28dp"
+                            android:layout_height="28dp"
+                            android:layout_margin="5dp"
+                            android:background="@drawable/add_button"/>
+
+                    </LinearLayout>
 
                     <ListView
                         android:id="@+id/listview"

@@ -144,7 +144,7 @@ public class SettingsDataAdapter extends RecyclerView.Adapter<SettingsDataViewHo
                     Intent intent = new Intent(context.getApplicationContext(), SettingsActivity.class);
                     context.startActivity(intent);
                 }else{
-                    Toast.makeText(context.getApplicationContext(), "Error", Toast.LENGTH_SHORT).show();
+                    /*Toast.makeText(context.getApplicationContext(), "Error", Toast.LENGTH_SHORT).show();*/
                 }
             }
 

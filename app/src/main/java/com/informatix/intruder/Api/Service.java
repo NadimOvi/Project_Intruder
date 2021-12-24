@@ -46,7 +46,7 @@ public interface Service {
 
     @Headers({"Accept: application/json"})
     @GET("dates_add.php")
-    Call<String> getAddDay(@Query("device_id") Integer device_id,
+    Call<JSONObject> getAddDay(@Query("device_id") Integer device_id,
                              @Query("date") String date,
                              @Query("start_time") String start_time,
                              @Query("end_time") String end_time);

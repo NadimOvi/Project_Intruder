@@ -26,6 +26,9 @@ import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.Toast;
 
+import com.gdacciaro.iOSDialog.iOSDialog;
+import com.gdacciaro.iOSDialog.iOSDialogBuilder;
+import com.gdacciaro.iOSDialog.iOSDialogClickListener;
 import com.informatix.intruder.Api.Service;
 import com.informatix.intruder.Model.MainWeekModels;
 import com.informatix.intruder.Model.WeekModels;
@@ -59,6 +62,8 @@ public class DashboardActivity extends AppCompatActivity {
     String popUpStartTime,popUpEndTime;
     String mainDeviceID;
     int device_id, weekDayId, dayId;
+
+    ArrayList<WeekModels> tempList;
 
 
     @Override
@@ -177,7 +182,7 @@ public class DashboardActivity extends AppCompatActivity {
 
     private ArrayList sortAndAddSections(ArrayList<WeekModels> itemList) {
 
-        ArrayList<WeekModels> tempList = new ArrayList<>();
+        tempList = new ArrayList<>();
         //First we sort the array
         Collections.sort(itemList);
 
@@ -205,6 +210,7 @@ public class DashboardActivity extends AppCompatActivity {
         public ListAdapter(Context context, ArrayList items) {
             super(context, 0, items);
             inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+
         }
 
         @Override
@@ -260,8 +266,8 @@ public class DashboardActivity extends AppCompatActivity {
             else
             {
                 v = inflater.inflate(R.layout.row_item, null);
-                startTime = (EditText) v.findViewById(R.id.startTime);
-                endTime = (EditText) v.findViewById(R.id.endTime);
+                startTime = v.findViewById(R.id.startTime);
+                endTime =  v.findViewById(R.id.endTime);
                 addButton =  v.findViewById(R.id.addButton);
                 deleteButton =  v.findViewById(R.id.deleteButton);
                 editButton =  v.findViewById(R.id.editButton);
@@ -360,21 +366,21 @@ public class DashboardActivity extends AppCompatActivity {
                                         @Override
                                         public void onResponse(Call<String> call, Response<String> response) {
                                             if (response.isSuccessful()){
-                                                Toast.makeText(DashboardActivity.this, "New Time Added", Toast.LENGTH_SHORT).show();
+                                                /*Toast.makeText(DashboardActivity.this, "New Time Added", Toast.LENGTH_SHORT).show();*/
 
                                                 /*startActivity(getIntent());*/
                                                 /*recreate();*/
                                                 progressDialog.dismiss();
 
                                             }else{
-                                                Toast.makeText(DashboardActivity.this, "Error", Toast.LENGTH_SHORT).show();
+                                               /* Toast.makeText(DashboardActivity.this, "Error", Toast.LENGTH_SHORT).show();*/
                                             }
                                         }
 
                                         @Override
                                         public void onFailure(Call<String> call, Throwable t) {
                                             progressDialog.dismiss();
-                                            Toast.makeText(DashboardActivity.this, "Failed", Toast.LENGTH_SHORT).show();
+                                            /*Toast.makeText(DashboardActivity.this, "Failed", Toast.LENGTH_SHORT).show();*/
                                             recreate();
                                         }
                                     });
@@ -466,13 +472,13 @@ public class DashboardActivity extends AppCompatActivity {
                                         @Override
                                         public void onResponse(Call<String> call, Response<String> response) {
                                             if (response.isSuccessful()){
-                                                Toast.makeText(DashboardActivity.this, "New Time Added", Toast.LENGTH_SHORT).show();
+                                               /* Toast.makeText(DashboardActivity.this, "New Time Added", Toast.LENGTH_SHORT).show();*/
                                                 progressDialog.dismiss();
                                                 /*startActivity(getIntent());*/
                                                 /*recreate();*/
 
                                             }else{
-                                                Toast.makeText(DashboardActivity.this, "Error", Toast.LENGTH_SHORT).show();
+                                               /* Toast.makeText(DashboardActivity.this, "Error", Toast.LENGTH_SHORT).show();*/
                                                 progressDialog.dismiss();
                                             }
                                         }
@@ -480,7 +486,7 @@ public class DashboardActivity extends AppCompatActivity {
                                         @Override
                                         public void onFailure(Call<String> call, Throwable t) {
                                             progressDialog.dismiss();
-                                            Toast.makeText(DashboardActivity.this, "Failed", Toast.LENGTH_SHORT).show();
+                                           /* Toast.makeText(DashboardActivity.this, "Failed", Toast.LENGTH_SHORT).show();*/
                                             recreate();
                                         }
                                     });
@@ -571,13 +577,13 @@ public class DashboardActivity extends AppCompatActivity {
                                         @Override
                                         public void onResponse(Call<String> call, Response<String> response) {
                                             if (response.isSuccessful()){
-                                                Toast.makeText(DashboardActivity.this, "New Time Added", Toast.LENGTH_SHORT).show();
+                                               /* Toast.makeText(DashboardActivity.this, "New Time Added", Toast.LENGTH_SHORT).show();*/
                                                 progressDialog.dismiss();
                                                 /*startActivity(getIntent());*/
                                                 /*recreate();*/
 
                                             }else{
-                                                Toast.makeText(DashboardActivity.this, "Error", Toast.LENGTH_SHORT).show();
+                                               /* Toast.makeText(DashboardActivity.this, "Error", Toast.LENGTH_SHORT).show();*/
                                                 progressDialog.dismiss();
                                             }
                                         }
@@ -585,7 +591,7 @@ public class DashboardActivity extends AppCompatActivity {
                                         @Override
                                         public void onFailure(Call<String> call, Throwable t) {
                                             progressDialog.dismiss();
-                                            Toast.makeText(DashboardActivity.this, "Failed", Toast.LENGTH_SHORT).show();
+                                           /* Toast.makeText(DashboardActivity.this, "Failed", Toast.LENGTH_SHORT).show();*/
                                             recreate();
                                         }
                                     });
@@ -676,20 +682,20 @@ public class DashboardActivity extends AppCompatActivity {
                                         @Override
                                         public void onResponse(Call<String> call, Response<String> response) {
                                             if (response.isSuccessful()){
-                                                Toast.makeText(DashboardActivity.this, "New Time Added", Toast.LENGTH_SHORT).show();
+                                               /* Toast.makeText(DashboardActivity.this, "New Time Added", Toast.LENGTH_SHORT).show();*/
                                                 progressDialog.dismiss();
                                                 /*startActivity(getIntent());*/
                                                 /*recreate();*/
 
                                             }else{
-                                                Toast.makeText(DashboardActivity.this, "Error", Toast.LENGTH_SHORT).show();
+                                               /* Toast.makeText(DashboardActivity.this, "Error", Toast.LENGTH_SHORT).show();*/
                                             }
                                         }
 
                                         @Override
                                         public void onFailure(Call<String> call, Throwable t) {
                                             progressDialog.dismiss();
-                                            Toast.makeText(DashboardActivity.this, "Failed", Toast.LENGTH_SHORT).show();
+                                           /* Toast.makeText(DashboardActivity.this, "Failed", Toast.LENGTH_SHORT).show();*/
                                             recreate();
 
                                         }
@@ -782,21 +788,21 @@ public class DashboardActivity extends AppCompatActivity {
                                         public void onResponse(Call<String> call, Response<String> response) {
                                             if (response.isSuccessful()){
                                                 progressDialog.dismiss();
-                                                Toast.makeText(DashboardActivity.this, "New Time Added", Toast.LENGTH_SHORT).show();
+                                              /*  Toast.makeText(DashboardActivity.this, "New Time Added", Toast.LENGTH_SHORT).show();*/
 
                                                 /*startActivity(getIntent());*/
                                                 /*recreate();*/
 
                                             }else{
                                                 progressDialog.dismiss();
-                                                Toast.makeText(DashboardActivity.this, "Error", Toast.LENGTH_SHORT).show();
+                                                /*Toast.makeText(DashboardActivity.this, "Error", Toast.LENGTH_SHORT).show();*/
                                             }
                                         }
 
                                         @Override
                                         public void onFailure(Call<String> call, Throwable t) {
                                             progressDialog.dismiss();
-                                            Toast.makeText(DashboardActivity.this, "Failed", Toast.LENGTH_SHORT).show();
+                                            /*Toast.makeText(DashboardActivity.this, "Failed", Toast.LENGTH_SHORT).show();*/
                                             recreate();
                                         }
                                     });
@@ -887,20 +893,20 @@ public class DashboardActivity extends AppCompatActivity {
                                         @Override
                                         public void onResponse(Call<String> call, Response<String> response) {
                                             if (response.isSuccessful()){
-                                                Toast.makeText(DashboardActivity.this, "New Time Added", Toast.LENGTH_SHORT).show();
+                                               /* Toast.makeText(DashboardActivity.this, "New Time Added", Toast.LENGTH_SHORT).show();*/
 
                                                 /*startActivity(getIntent());*/
                                                 /*recreate();*/
 
                                             }else{
-                                                Toast.makeText(DashboardActivity.this, "Error", Toast.LENGTH_SHORT).show();
+                                                /*Toast.makeText(DashboardActivity.this, "Error", Toast.LENGTH_SHORT).show();*/
                                             }
                                         }
 
                                         @Override
                                         public void onFailure(Call<String> call, Throwable t) {
                                             progressDialog.dismiss();
-                                            Toast.makeText(DashboardActivity.this, "Failed", Toast.LENGTH_SHORT).show();
+                                          /*  Toast.makeText(DashboardActivity.this, "Failed", Toast.LENGTH_SHORT).show();*/
                                             recreate();
                                         }
                                     });
@@ -914,35 +920,80 @@ public class DashboardActivity extends AppCompatActivity {
 
                     @Override
                     public void onClick(View v) {
-                        startTime.setEnabled(true);
-                        endTime.setEnabled(true);
-                        Retrofit retrofit = new Retrofit.Builder()
-                                .baseUrl("http://us.infrmtx.com/iot/")
-                                .addConverterFactory(GsonConverterFactory.create())
-                                .build();
-                        progressDialog.show();
-                        Service api = retrofit.create(Service.class);
-                        Call<JSONObject> call= api.getDeleteWeeks(cell.getDevice_id(),cell.getDay_id());
-                        call.enqueue(new Callback<JSONObject>() {
-                            @Override
-                            public void onResponse(Call<JSONObject> call, Response<JSONObject> response) {
-                                if (response.isSuccessful()){
-                                    progressDialog.dismiss();
-                                    Toast.makeText(DashboardActivity.this, "Delete Done", Toast.LENGTH_SHORT).show();
-                                    recreate();
-                                }else{
-                                    progressDialog.dismiss();
-                                    Toast.makeText(DashboardActivity.this, "Error", Toast.LENGTH_SHORT).show();
-                                }
-                            }
+                        tempList.size();
+                        Integer cellData = cell.getWeek_day();
+                        ArrayList<Integer> list = new ArrayList<>();
+                        for (int i=0;i<tempList.size();i++){
+                            if (tempList.get(i).getWeek_day().equals(cellData)){
 
-                            @Override
-                            public void onFailure(Call<JSONObject> call, Throwable t) {
-                                progressDialog.dismiss();
-                                Toast.makeText(DashboardActivity.this, "Failed", Toast.LENGTH_SHORT).show();
-                                recreate();
+                                list.add(i);
                             }
-                        });
+                        }
+                        if (list.size()<=2){
+                            new iOSDialogBuilder(getContext())
+                                    .setTitle("Sorry!")
+                                    .setSubtitle("You did not permission to delete this")
+                                    .setBoldPositiveLabel(true)
+                                    .setCancelable(false)
+                                    .setPositiveListener("Ok",new iOSDialogClickListener() {
+                                        @Override
+                                        public void onClick(iOSDialog dialog) {
+                                            dialog.dismiss();
+                                        }
+                                    })
+
+                                    .build().show();
+                        }else{
+                            new iOSDialogBuilder(getContext())
+                                .setTitle("Delete!")
+                                .setSubtitle("Are you certain you want to delete")
+                                .setBoldPositiveLabel(true)
+                                .setCancelable(false)
+                                .setPositiveListener("Ok",new iOSDialogClickListener() {
+                                    @Override
+                                    public void onClick(iOSDialog dialog) {
+                                        startTime.setEnabled(true);
+                                        endTime.setEnabled(true);
+                                        Retrofit retrofit = new Retrofit.Builder()
+                                                .baseUrl("http://us.infrmtx.com/iot/")
+                                                .addConverterFactory(GsonConverterFactory.create())
+                                                .build();
+                                        progressDialog.show();
+                                        Service api = retrofit.create(Service.class);
+                                        Call<JSONObject> call= api.getDeleteWeeks(cell.getDevice_id(),cell.getDay_id());
+                                        call.enqueue(new Callback<JSONObject>() {
+                                            @Override
+                                            public void onResponse(Call<JSONObject> call, Response<JSONObject> response) {
+                                                if (response.isSuccessful()){
+                                                    progressDialog.dismiss();
+                                                    dialog.dismiss();
+                                                    recreate();
+                                                }else{
+                                                    progressDialog.dismiss();
+
+                                                }
+                                            }
+
+                                            @Override
+                                            public void onFailure(Call<JSONObject> call, Throwable t) {
+                                                progressDialog.dismiss();
+                                                dialog.dismiss();
+                                                recreate();
+                                            }
+                                        });
+
+
+                                    }
+                                })
+                                .setNegativeListener("Cancel", new iOSDialogClickListener() {
+                                    @Override
+                                    public void onClick(iOSDialog dialog) {
+                                        dialog.dismiss();
+                                    }
+                                })
+                                .build().show();
+                        }
+
                     }
                 });
 
@@ -961,9 +1012,13 @@ public class DashboardActivity extends AppCompatActivity {
                             dialog = dialogBuilder.create();
                             dialog.show();
 
+                            pop_upstartTime.setText(cell.getStart_time());
+                            pop_upendTime.setText(cell.getEnd_time());
+
                             pop_upstartTime.setOnClickListener(new View.OnClickListener() {
                                 @Override
                                 public void onClick(View v) {
+
                                     TimePickerDialog timePickerDialog = new TimePickerDialog(
                                             DashboardActivity.this,
                                             android.R.style.Theme_Holo_Light_Dialog_MinWidth,
@@ -1035,21 +1090,21 @@ public class DashboardActivity extends AppCompatActivity {
                                         public void onResponse(Call<JSONObject> call, Response<JSONObject> response) {
                                             if (response.isSuccessful()){
                                                 progressDialog.dismiss();
-                                                Toast.makeText(DashboardActivity.this, "New Time Added", Toast.LENGTH_SHORT).show();
+                                               /* Toast.makeText(DashboardActivity.this, "New Time Added", Toast.LENGTH_SHORT).show();*/
 
                                                 startActivity(getIntent());
                                                 recreate();
 
                                             }else{
                                                 progressDialog.dismiss();
-                                                Toast.makeText(DashboardActivity.this, "Error", Toast.LENGTH_SHORT).show();
+                                              /*  Toast.makeText(DashboardActivity.this, "Error", Toast.LENGTH_SHORT).show();*/
                                             }
                                         }
 
                                         @Override
                                         public void onFailure(Call<JSONObject> call, Throwable t) {
                                             progressDialog.dismiss();
-                                            Toast.makeText(DashboardActivity.this, "Failed", Toast.LENGTH_SHORT).show();
+                                           /* Toast.makeText(DashboardActivity.this, "Failed", Toast.LENGTH_SHORT).show();*/
                                             recreate();
                                         }
                                     });
@@ -1067,6 +1122,9 @@ public class DashboardActivity extends AppCompatActivity {
                             dialog = dialogBuilder.create();
                             dialog.show();
 
+                            pop_upstartTime.setText(cell.getStart_time());
+                            pop_upendTime.setText(cell.getEnd_time());
+
                             pop_upstartTime.setOnClickListener(new View.OnClickListener() {
                                 @Override
                                 public void onClick(View v) {
@@ -1141,21 +1199,21 @@ public class DashboardActivity extends AppCompatActivity {
                                         public void onResponse(Call<JSONObject> call, Response<JSONObject> response) {
                                             if (response.isSuccessful()){
                                                 progressDialog.dismiss();
-                                                Toast.makeText(DashboardActivity.this, "New Time Added", Toast.LENGTH_SHORT).show();
+                                               /* Toast.makeText(DashboardActivity.this, "New Time Added", Toast.LENGTH_SHORT).show();*/
 
                                                 /*startActivity(getIntent());*/
                                                 /*recreate();*/
 
                                             }else{
                                                 progressDialog.dismiss();
-                                                Toast.makeText(DashboardActivity.this, "Error", Toast.LENGTH_SHORT).show();
+                                             /*   Toast.makeText(DashboardActivity.this, "Error", Toast.LENGTH_SHORT).show();*/
                                             }
                                         }
 
                                         @Override
                                         public void onFailure(Call<JSONObject> call, Throwable t) {
                                             progressDialog.dismiss();
-                                            Toast.makeText(DashboardActivity.this, "Failed", Toast.LENGTH_SHORT).show();
+                                           /* Toast.makeText(DashboardActivity.this, "Failed", Toast.LENGTH_SHORT).show();*/
                                             recreate();
                                         }
                                     });
@@ -1173,6 +1231,9 @@ public class DashboardActivity extends AppCompatActivity {
                             dialog = dialogBuilder.create();
                             dialog.show();
 
+                            pop_upstartTime.setText(cell.getStart_time());
+                            pop_upendTime.setText(cell.getEnd_time());
+
                             pop_upstartTime.setOnClickListener(new View.OnClickListener() {
                                 @Override
                                 public void onClick(View v) {
@@ -1247,21 +1308,21 @@ public class DashboardActivity extends AppCompatActivity {
                                         public void onResponse(Call<JSONObject> call, Response<JSONObject> response) {
                                             if (response.isSuccessful()){
                                                 progressDialog.dismiss();
-                                                Toast.makeText(DashboardActivity.this, "New Time Added", Toast.LENGTH_SHORT).show();
+                                              /*  Toast.makeText(DashboardActivity.this, "New Time Added", Toast.LENGTH_SHORT).show();*/
 
                                                 startActivity(getIntent());
                                                 recreate();
 
                                             }else{
                                                 progressDialog.dismiss();
-                                                Toast.makeText(DashboardActivity.this, "Error", Toast.LENGTH_SHORT).show();
+                                              /*  Toast.makeText(DashboardActivity.this, "Error", Toast.LENGTH_SHORT).show();*/
                                             }
                                         }
 
                                         @Override
                                         public void onFailure(Call<JSONObject> call, Throwable t) {
                                             progressDialog.dismiss();
-                                            Toast.makeText(DashboardActivity.this, "Failed", Toast.LENGTH_SHORT).show();
+                                          /*  Toast.makeText(DashboardActivity.this, "Failed", Toast.LENGTH_SHORT).show();*/
                                             recreate();
                                         }
                                     });
@@ -1278,6 +1339,9 @@ public class DashboardActivity extends AppCompatActivity {
                             dialog = dialogBuilder.create();
                             dialog.show();
 
+                            pop_upstartTime.setText(cell.getStart_time());
+                            pop_upendTime.setText(cell.getEnd_time());
+
                             pop_upstartTime.setOnClickListener(new View.OnClickListener() {
                                 @Override
                                 public void onClick(View v) {
@@ -1352,21 +1416,21 @@ public class DashboardActivity extends AppCompatActivity {
                                         public void onResponse(Call<JSONObject> call, Response<JSONObject> response) {
                                             if (response.isSuccessful()){
                                                 progressDialog.dismiss();
-                                                Toast.makeText(DashboardActivity.this, "New Time Added", Toast.LENGTH_SHORT).show();
+                                             /*   Toast.makeText(DashboardActivity.this, "New Time Added", Toast.LENGTH_SHORT).show();*/
 
                                                 startActivity(getIntent());
                                                 recreate();
 
                                             }else{
                                                 progressDialog.dismiss();
-                                                Toast.makeText(DashboardActivity.this, "Error", Toast.LENGTH_SHORT).show();
+                                              /*  Toast.makeText(DashboardActivity.this, "Error", Toast.LENGTH_SHORT).show();*/
                                             }
                                         }
 
                                         @Override
                                         public void onFailure(Call<JSONObject> call, Throwable t) {
                                             progressDialog.dismiss();
-                                            Toast.makeText(DashboardActivity.this, "Failed", Toast.LENGTH_SHORT).show();
+                                           /* Toast.makeText(DashboardActivity.this, "Failed", Toast.LENGTH_SHORT).show();*/
                                             recreate();
                                         }
                                     });
@@ -1383,6 +1447,9 @@ public class DashboardActivity extends AppCompatActivity {
                             dialog = dialogBuilder.create();
                             dialog.show();
 
+                            pop_upstartTime.setText(cell.getStart_time());
+                            pop_upendTime.setText(cell.getEnd_time());
+
                             pop_upstartTime.setOnClickListener(new View.OnClickListener() {
                                 @Override
                                 public void onClick(View v) {
@@ -1457,21 +1524,21 @@ public class DashboardActivity extends AppCompatActivity {
                                         public void onResponse(Call<JSONObject> call, Response<JSONObject> response) {
                                             if (response.isSuccessful()){
                                                 progressDialog.dismiss();
-                                                Toast.makeText(DashboardActivity.this, "New Time Added", Toast.LENGTH_SHORT).show();
+                                               /* Toast.makeText(DashboardActivity.this, "New Time Added", Toast.LENGTH_SHORT).show();*/
 
                                                 startActivity(getIntent());
                                                 recreate();
 
                                             }else{
                                                 progressDialog.dismiss();
-                                                Toast.makeText(DashboardActivity.this, "Error", Toast.LENGTH_SHORT).show();
+                                              /*  Toast.makeText(DashboardActivity.this, "Error", Toast.LENGTH_SHORT).show();*/
                                             }
                                         }
 
                                         @Override
                                         public void onFailure(Call<JSONObject> call, Throwable t) {
                                             progressDialog.dismiss();
-                                            Toast.makeText(DashboardActivity.this, "Failed", Toast.LENGTH_SHORT).show();
+                                            /*Toast.makeText(DashboardActivity.this, "Failed", Toast.LENGTH_SHORT).show();*/
                                             recreate();
                                         }
                                     });
@@ -1489,6 +1556,9 @@ public class DashboardActivity extends AppCompatActivity {
                             dialog = dialogBuilder.create();
                             dialog.show();
 
+                            pop_upstartTime.setText(cell.getStart_time());
+                            pop_upendTime.setText(cell.getEnd_time());
+
                             pop_upstartTime.setOnClickListener(new View.OnClickListener() {
                                 @Override
                                 public void onClick(View v) {
@@ -1563,21 +1633,21 @@ public class DashboardActivity extends AppCompatActivity {
                                         public void onResponse(Call<JSONObject> call, Response<JSONObject> response) {
                                             if (response.isSuccessful()){
                                                 progressDialog.dismiss();
-                                                Toast.makeText(DashboardActivity.this, "New Time Added", Toast.LENGTH_SHORT).show();
+                                               /* Toast.makeText(DashboardActivity.this, "New Time Added", Toast.LENGTH_SHORT).show();*/
 
                                                 startActivity(getIntent());
                                                 recreate();
 
                                             }else{
                                                 progressDialog.dismiss();
-                                                Toast.makeText(DashboardActivity.this, "Error", Toast.LENGTH_SHORT).show();
+                                                /*Toast.makeText(DashboardActivity.this, "Error", Toast.LENGTH_SHORT).show();*/
                                             }
                                         }
 
                                         @Override
                                         public void onFailure(Call<JSONObject> call, Throwable t) {
                                             progressDialog.dismiss();
-                                            Toast.makeText(DashboardActivity.this, "Failed", Toast.LENGTH_SHORT).show();
+                                           /* Toast.makeText(DashboardActivity.this, "Failed", Toast.LENGTH_SHORT).show();*/
                                             recreate();
                                         }
                                     });
@@ -1592,6 +1662,31 @@ public class DashboardActivity extends AppCompatActivity {
         }
     }
 
+    @Override
+    public void onBackPressed(){
 
-    
+        new iOSDialogBuilder(this)
+                .setTitle("Exit!")
+                .setSubtitle("Do you want to exit?")
+                .setBoldPositiveLabel(true)
+                .setCancelable(false)
+                .setPositiveListener("Ok",new iOSDialogClickListener() {
+                    @Override
+                    public void onClick(iOSDialog dialog) {
+                        Intent a = new Intent(Intent.ACTION_MAIN);
+                        a.addCategory(Intent.CATEGORY_HOME);
+                        a.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                        startActivity(a);
+                        finish();
+                    }
+                })
+                .setNegativeListener("Cancel", new iOSDialogClickListener() {
+                    @Override
+                    public void onClick(iOSDialog dialog) {
+                        dialog.dismiss();
+                    }
+                })
+                .build().show();
+
+    }
 }

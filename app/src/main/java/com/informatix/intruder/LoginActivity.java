@@ -48,6 +48,7 @@ public class LoginActivity extends AppCompatActivity {
                 && sharedPreferences.contains("name")&& sharedPreferences.contains("device_id")&& sharedPreferences.contains("valid_till")){
            Intent intent = new Intent(LoginActivity.this,DashboardActivity.class);
             startActivity(intent);
+            finish();
         }
 
         userLoginButton.setOnClickListener(new View.OnClickListener() {
@@ -124,6 +125,7 @@ public class LoginActivity extends AppCompatActivity {
 
                     Intent intent = new Intent(LoginActivity.this, DashboardActivity.class);
                     startActivity(intent);
+                    finish();
 
                 }else{
                     Toast.makeText(LoginActivity.this, "Error", Toast.LENGTH_SHORT).show();
